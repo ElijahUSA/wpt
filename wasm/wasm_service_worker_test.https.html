@@ -10,12 +10,14 @@
       test, 'resources/service-worker.js', 'resources/blank.html');
       add_completion_callback(() => registration.unregister());
       var worker = registration.installing;
-      var data = await new Promise((resolve, reject) => {
+      var event = await new Promise((resolve, reject) => {
         var messageChannel = new MessageChannel();
         worker.postMessage({port: messageChannel.port2}, [messageChannel.port2]);
         worker.postMessage({compile: true});
-        messageChannel.port1.onmessage = event => resolve(event.data);
+        messageChannel.port1.onmessage = event => reject(event);
+        messageChannel.port1.onmessageerror = event => resolve(event);
       });
-      assert_equals(data, null);
+      assert_equals(event.type, "messageerror");
+      assert_equals(event.data, null);
   }, 'postMessaging wasm from a service worker should fail');
 </script>
