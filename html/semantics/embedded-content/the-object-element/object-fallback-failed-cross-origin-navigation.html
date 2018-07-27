@@ -1,0 +1,29 @@
+n<!DOCTYPE html>
+<meta charset=utf-8>
+<title>Test that &lt;object&gt; renders its own fallback.</title>
+<script src="/resources/testharness.js"></script>
+<script src="/resources/testharnessreport.js"></script>
+<body>
+<object data="https://does-not-exists.com/resource.html" type="text/html">
+  <p id="fallback-content">This is the fallback content</p>
+</object>
+<script>
+  let fallbackElement = document.getElementById("fallback-content");
+  let check_fallback_delay = 10;
+
+  promise_test(async(testInstance) => {
+    function checkFallback(callback) {
+      let rect = fallbackElement.getBoundingClientRect();
+      let area = rect.width * rect.height;
+      if (area > 0) {
+        callback();
+        return;
+      }
+      testInstance.step_timeout(checkFallback.bind(this, callback),
+                                check_fallback_delay);
+    }
+
+    await new Promise((resolve) => { checkFallback(resolve); });
+  },  "Verify fallback content is correctly shown.");
+</script>
+</body>
